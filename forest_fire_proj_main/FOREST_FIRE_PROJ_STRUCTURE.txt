@@ -1,0 +1,67 @@
+FOREST_FIRE_PROJ - Recommended Project Structure
+
+FOREST_FIRE_PROJ/
+│
+├── data/
+│   ├── raw/
+│   │   ├── modis/
+│   │   ├── viirs/
+│   │   └── images/
+│   ├── processed/
+│   └── weather/
+│
+├── src/
+│   ├── image_module/
+│   │   ├── vit_model.py
+│   │   └── preprocess.py
+│   │
+│   ├── hotspot_module/
+│   │   ├── modis_loader.py
+│   │   └── hotspot_detector.py
+│   │
+│   ├── risk_module/
+│   │   ├── rf_model.py
+│   │   └── weather_features.py
+│   │
+│   ├── spread_module/
+│   │   ├── cnn_lstm.py
+│   │   └── sequence_builder.py
+│   │
+│   ├── fusion/
+│   │   └── decision_engine.py
+│   │
+│   └── utils/
+│       └── helpers.py
+│
+├── notebooks/
+│   ├── EDA.ipynb
+│   └── experiments.ipynb
+│
+├── app/
+│   ├── backend/
+│   └── frontend/
+│
+├── models/
+├── requirements.txt
+└── main.py
+
+------------------------------------------------------------------------
+
+PROJECT FLOW:
+
+1.  Download MODIS CSV → place inside data/raw/
+2.  Run preprocess_modis.py → creates data/processed/modis_processed.csv
+3.  Download VIIRS (later) → preprocess similarly
+4.  Merge datasets → create final_dataset.csv
+5.  Train ML model → save inside models/
+6.  Evaluate and visualize results
+
+------------------------------------------------------------------------
+
+This structure keeps: - Raw data separate from processed data - Source
+code clean and modular - Models saved separately - Future expansion
+possible (CNN, LSTM, etc.)
+
+ streamlit run app/frontend/app.py
+ venv\Scripts\activate
+ 

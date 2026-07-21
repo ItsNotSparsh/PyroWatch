@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+
+# Local datasets and heavy model artifacts
+data/raw/training_images/
+
