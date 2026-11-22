@@ -1,0 +1,16 @@
+# Additional packages required to retrain the Vision Transformer.
+# Install runtime requirements first, then these packages.
+-r requirements.txt
+datasets>=2.0.0
+evaluate>=0.4.0
+
+# Optional: notebook-based data exploration and visualization.
+jupyter>=1.0.0
+matplotlib>=3.7.1
+seaborn>=0.12.2
+
+# Optional geospatial raster/vector processing utilities used by data workflows.
+rasterio>=1.3.0
+geopandas>=0.13.0
+shapely>=2.0.0
+tqdm>=4.65.0

@@ -1,0 +1,18 @@
+# Runtime dependencies for the Streamlit application.
+# Install PyTorch separately: CPU by default, or use the optional GPU instructions in README.md.
+transformers>=4.30.0
+scikit-learn>=1.2.2
+pandas>=2.0.0
+numpy>=1.24.0
+opencv-python>=4.8.0
+Pillow>=9.5.0
+scipy>=1.7.0
+streamlit>=1.25.0
+folium>=0.14.0
+streamlit-folium>=0.13.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+geopy>=2.3.0
+reportlab>=4.0.0
+plotly>=5.14.0
+joblib>=1.2.0
