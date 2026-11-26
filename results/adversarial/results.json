@@ -1,0 +1,47 @@
+{
+  "eps_255": 8.0,
+  "mode": "targeted \u2192 no_fire",
+  "generator": "models\\advgan\\advgan_no_fire_eps8.pt",
+  "pgd_steps": 10,
+  "results": {
+    "FGSM": {
+      "samples": 378,
+      "clean_accuracy": 0.9470899701118469,
+      "adversarial_accuracy": 0.7328042387962341,
+      "attack_success_rate": 0.6791044776119403,
+      "eligible_samples": 134,
+      "mean_linf_255": 8.000015258789062,
+      "mean_l2": 12.044828414916992,
+      "mean_psnr_db": 30.162809371948242,
+      "ms_per_image": 18.708652920193142,
+      "fire_recall_clean": 0.9305555820465088,
+      "fire_recall_adversarial": 0.2986111044883728
+    },
+    "PGD": {
+      "samples": 378,
+      "clean_accuracy": 0.9470899701118469,
+      "adversarial_accuracy": 0.6190476417541504,
+      "attack_success_rate": 1.0,
+      "eligible_samples": 134,
+      "mean_linf_255": 8.000015258789062,
+      "mean_l2": 7.837964057922363,
+      "mean_psnr_db": 33.893306732177734,
+      "ms_per_image": 158.00939035163356,
+      "fire_recall_clean": 0.9305555820465088,
+      "fire_recall_adversarial": 0.0
+    },
+    "AdvGAN": {
+      "samples": 378,
+      "clean_accuracy": 0.9470899701118469,
+      "adversarial_accuracy": 0.6402116417884827,
+      "attack_success_rate": 0.9402985074626866,
+      "eligible_samples": 134,
+      "mean_linf_255": 8.000015258789062,
+      "mean_l2": 8.735281944274902,
+      "mean_psnr_db": 32.98915100097656,
+      "ms_per_image": 2.5885571878423135,
+      "fire_recall_clean": 0.9305555820465088,
+      "fire_recall_adversarial": 0.0555555559694767
+    }
+  }
+}

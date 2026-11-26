@@ -10,3 +10,25 @@ Thumbs.db
 # Local datasets and heavy model artifacts
 data/raw/training_images/
 
+# ViT weights and checkpoints (~340 MB each; GitHub rejects files over 100 MB)
+models/custom_vit_fire/checkpoint-*/
+models/custom_vit_fire_OLD/
+
+# Downloaded datasets, if ever placed inside the repo
+kaggle_cache/
+datasets/
+
+# Secrets and editor settings
+kaggle.json
+.vscode/
+.idea/
+desktop.ini
+
+# Temporary upload the app writes on every image analysis
+data/raw/images/temp_upload.jpg
+
+# Logs
+*.log
+
+# NOTE: models/advgan/*.pt (GAN generator, a few MB) and results/adversarial/
+# are intentionally NOT ignored: the demo and the report need them.
