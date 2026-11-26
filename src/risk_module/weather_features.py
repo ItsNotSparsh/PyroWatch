@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import os
 import requests
 from dotenv import load_dotenv
@@ -11,35 +12,38 @@ class WeatherFetcher:
         if not self.api_key:
             print("Warning: OPENWEATHER_KEY not found in .env file.")
 
-    def get_current_weather(self, lat, lon):
-        """
-        Fetches real-time temp, humidity, wind speed, and wind direction.
-        """
+    def get_forecast(self, lat, lon):
         if not self.api_key:
-            return None, None, None, None
-            
-        params = {
-            'lat': lat,
-            'lon': lon,
-            'appid': self.api_key,
-            'units': 'metric' 
-        }
-        
+            return []
         try:
-            response = requests.get(self.base_url, params=params)
-            response.raise_for_status() 
-            
+            response = requests.get("https://api.openweathermap.org/data/2.5/forecast",
+                                    params={"lat": lat, "lon": lon, "appid": self.api_key,
+                                            "units": "metric", "cnt": 8}, timeout=10)
+            response.raise_for_status()
+            return response.json()["list"]
+        except (requests.RequestException, ValueError, KeyError):
+            return []
+
+    def get_current_weather(self, lat, lon):
+        reading = self.get_current_reading(lat, lon)
+        return reading["values"] if reading else (None, None, None, None)
+
+    def get_current_reading(self, lat, lon):
+        if not self.api_key:
+            return None
+        params = {"lat": lat, "lon": lon, "appid": self.api_key, "units": "metric"}
+        try:
+            response = requests.get(self.base_url, params=params, timeout=10)
+            response.raise_for_status()
             data = response.json()
-            temp = data['main']['temp']
-            humidity = data['main']['humidity']
-            wind_speed = data['wind']['speed'] # Meters per second
-            wind_deg = data['wind'].get('deg', 0) # Degrees (0 is North)
-            
-            return temp, humidity, wind_speed, wind_deg
-            
-        except requests.exceptions.RequestException as e:
-            print(f"Error fetching weather data: {e}")
-            return None, None, None, None
+            wind = data["wind"]
+            values = (float(data["main"]["temp"]), float(data["main"]["humidity"]),
+                      float(wind["speed"]), wind.get("deg"))
+            timestamp = datetime.fromtimestamp(data["dt"], timezone.utc)
+            return {"coordinates": (lat, lon), "place": data.get("name") or "Selected location",
+                    "time": timestamp, "values": values}
+        except (requests.RequestException, ValueError, TypeError, KeyError, OverflowError):
+            return None
 
 # --- Quick Test Block ---
 if __name__ == "__main__":

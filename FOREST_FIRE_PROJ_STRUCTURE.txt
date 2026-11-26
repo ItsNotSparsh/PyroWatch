@@ -64,4 +64,3 @@ possible (CNN, LSTM, etc.)
 
 streamlit run app/app.py
 .venv\Scripts\activate
- 

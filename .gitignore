@@ -32,3 +32,4 @@ data/raw/images/temp_upload.jpg
 
 # NOTE: models/advgan/*.pt (GAN generator, a few MB) and results/adversarial/
 # are intentionally NOT ignored: the demo and the report need them.
+data/processed/latest_hotspots.csv

@@ -7,7 +7,7 @@ from PIL import Image
 import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Tell Python where to find our custom modules
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -32,464 +32,9 @@ st.set_page_config(
 # ─────────────────────────────────────────────────────────────
 # 2. Inject Professional Custom CSS
 # ─────────────────────────────────────────────────────────────
-st.markdown("""
-<style>
-    /* ── Import Google Font ── */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+from src.workspace_ui import render_workspace_ui
 
-    /* ── Root Variables ── */
-    :root {
-        --bg-primary: #0B0F19;
-        --bg-secondary: #111827;
-        --bg-card: rgba(17, 24, 39, 0.7);
-        --bg-card-hover: rgba(31, 41, 55, 0.8);
-        --border-subtle: rgba(255, 255, 255, 0.06);
-        --border-glow: rgba(255, 107, 53, 0.3);
-        --text-primary: #F9FAFB;
-        --text-secondary: #9CA3AF;
-        --text-muted: #6B7280;
-        --accent-orange: #FF6B35;
-        --accent-red: #EF4444;
-        --accent-green: #10B981;
-        --accent-blue: #3B82F6;
-        --accent-amber: #F59E0B;
-        --gradient-fire: linear-gradient(135deg, #FF6B35 0%, #E63946 50%, #D62828 100%);
-        --gradient-safe: linear-gradient(135deg, #10B981 0%, #06D6A0 100%);
-        --gradient-header: linear-gradient(135deg, #FF6B35 0%, #E63946 40%, #9333EA 100%);
-        --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
-        --shadow-glow-orange: 0 0 30px rgba(255, 107, 53, 0.15);
-        --shadow-glow-red: 0 0 30px rgba(239, 68, 68, 0.2);
-        --shadow-glow-green: 0 0 30px rgba(16, 185, 129, 0.15);
-        --radius-lg: 16px;
-        --radius-md: 12px;
-        --radius-sm: 8px;
-    }
-
-    /* ── Global Styles ── */
-    html, body, .stApp {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    }
-
-    .stApp {
-        background: var(--bg-primary) !important;
-    }
-
-    .main .block-container {
-        padding-top: 1rem !important;
-        max-width: 1400px;
-    }
-
-    /* ── Scrollbar ── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg-primary); }
-    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #4B5563; }
-
-    /* ── Header Banner ── */
-    .pyro-header {
-        background: linear-gradient(135deg, rgba(255,107,53,0.12) 0%, rgba(230,57,70,0.08) 50%, rgba(147,51,234,0.06) 100%);
-        border: 1px solid rgba(255,107,53,0.15);
-        border-radius: var(--radius-lg);
-        padding: 2rem 2.5rem;
-        margin-bottom: 1.5rem;
-        position: relative;
-        overflow: hidden;
-    }
-    .pyro-header::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 3px;
-        background: var(--gradient-header);
-    }
-    .pyro-header h1 {
-        font-size: 2.2rem;
-        font-weight: 800;
-        background: var(--gradient-header);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin: 0 0 0.3rem 0;
-        letter-spacing: -0.5px;
-    }
-    .pyro-header p {
-        color: var(--text-secondary);
-        font-size: 0.95rem;
-        font-weight: 400;
-        margin: 0;
-    }
-    .pyro-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(16, 185, 129, 0.1);
-        border: 1px solid rgba(16, 185, 129, 0.2);
-        border-radius: 20px;
-        padding: 4px 14px;
-        font-size: 0.75rem;
-        color: var(--accent-green);
-        font-weight: 600;
-        margin-top: 0.75rem;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-    }
-    .pyro-status-dot {
-        width: 7px; height: 7px;
-        background: var(--accent-green);
-        border-radius: 50%;
-        animation: pulse-dot 2s ease-in-out infinite;
-    }
-    @keyframes pulse-dot {
-        0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-        50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-    }
-
-    /* ── Metric Cards ── */
-    .metric-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-    .metric-card {
-        background: var(--bg-card);
-        backdrop-filter: blur(12px);
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-md);
-        padding: 1.25rem 1.5rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-    .metric-card:hover {
-        border-color: var(--border-glow);
-        box-shadow: var(--shadow-glow-orange);
-        transform: translateY(-2px);
-    }
-    .metric-card::after {
-        content: '';
-        position: absolute;
-        bottom: 0; left: 0; right: 0;
-        height: 2px;
-        background: var(--gradient-fire);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    .metric-card:hover::after { opacity: 1; }
-    .metric-label {
-        font-size: 0.72rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 0.5rem;
-    }
-    .metric-value {
-        font-size: 1.75rem;
-        font-weight: 800;
-        color: var(--text-primary);
-        line-height: 1;
-        letter-spacing: -0.5px;
-    }
-    .metric-unit {
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: var(--text-secondary);
-        margin-left: 2px;
-    }
-    .metric-icon {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-        display: block;
-    }
-
-    /* ── Risk Badge ── */
-    .risk-badge {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 1.25rem 1.75rem;
-        border-radius: var(--radius-md);
-        font-weight: 700;
-        font-size: 1rem;
-        margin: 1rem 0;
-        animation: slideIn 0.4s ease-out;
-    }
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateY(-8px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .risk-high {
-        background: linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(220,38,38,0.1) 100%);
-        border: 1px solid rgba(239,68,68,0.3);
-        color: #FCA5A5;
-        box-shadow: var(--shadow-glow-red);
-    }
-    .risk-low {
-        background: linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(6,214,160,0.08) 100%);
-        border: 1px solid rgba(16,185,129,0.25);
-        color: #6EE7B7;
-        box-shadow: var(--shadow-glow-green);
-    }
-    .risk-icon { font-size: 1.6rem; }
-
-    /* ── Section Headers ── */
-    .section-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin: 1.5rem 0 1rem 0;
-    }
-    .section-header h3 {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin: 0;
-    }
-    .section-divider {
-        flex: 1;
-        height: 1px;
-        background: linear-gradient(90deg, var(--border-subtle), transparent);
-    }
-
-    /* ── Map Container ── */
-    .map-container {
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        border: 1px solid var(--border-subtle);
-        box-shadow: var(--shadow-card);
-    }
-
-    /* ── Image Analysis Cards ── */
-    .analysis-card {
-        background: var(--bg-card);
-        backdrop-filter: blur(12px);
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-md);
-        padding: 1.75rem;
-        margin-bottom: 1rem;
-    }
-    .result-fire {
-        border-left: 4px solid var(--accent-red);
-        box-shadow: var(--shadow-glow-red);
-    }
-    .result-safe {
-        border-left: 4px solid var(--accent-green);
-        box-shadow: var(--shadow-glow-green);
-    }
-
-    /* ── Confidence Bar ── */
-    .conf-bar-container {
-        margin: 0.6rem 0;
-    }
-    .conf-bar-label {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: var(--text-secondary);
-        margin-bottom: 6px;
-    }
-    .conf-bar-track {
-        width: 100%;
-        height: 10px;
-        background: rgba(255,255,255,0.06);
-        border-radius: 5px;
-        overflow: hidden;
-    }
-    .conf-bar-fill {
-        height: 100%;
-        border-radius: 5px;
-        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .conf-bar-fire {
-        background: linear-gradient(90deg, #F59E0B, #EF4444);
-    }
-    .conf-bar-safe {
-        background: linear-gradient(90deg, #10B981, #06D6A0);
-    }
-
-    /* ── Upload Zone ── */
-    .upload-zone {
-        background: var(--bg-card);
-        border: 2px dashed rgba(255,255,255,0.08);
-        border-radius: var(--radius-lg);
-        padding: 2.5rem;
-        text-align: center;
-        transition: all 0.3s ease;
-    }
-    .upload-zone:hover {
-        border-color: rgba(255,107,53,0.3);
-        background: rgba(255,107,53,0.03);
-    }
-    .upload-icon {
-        font-size: 3rem;
-        margin-bottom: 0.75rem;
-        display: block;
-    }
-    .upload-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 0.3rem;
-    }
-    .upload-subtitle {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-    }
-
-    /* ── Footer ── */
-    .pyro-footer {
-        margin-top: 3rem;
-        padding: 1.5rem 0;
-        border-top: 1px solid var(--border-subtle);
-        text-align: center;
-    }
-    .pyro-footer p {
-        color: var(--text-muted);
-        font-size: 0.75rem;
-        margin: 0.15rem 0;
-    }
-    .pyro-footer a {
-        color: var(--accent-orange);
-        text-decoration: none;
-    }
-
-    /* ── Sidebar Overrides ── */
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0F1629 0%, #111827 100%) !important;
-        border-right: 1px solid var(--border-subtle) !important;
-    }
-    section[data-testid="stSidebar"] .stMarkdown h2 {
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid var(--border-subtle);
-        margin-bottom: 1rem;
-    }
-
-    /* ── Sidebar Brand ── */
-    .sidebar-brand {
-        background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(147,51,234,0.08));
-        border: 1px solid rgba(255,107,53,0.15);
-        border-radius: var(--radius-sm);
-        padding: 1rem 1.25rem;
-        margin-bottom: 1.5rem;
-        text-align: center;
-    }
-    .sidebar-brand-title {
-        font-size: 1.15rem;
-        font-weight: 800;
-        background: var(--gradient-header);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-    .sidebar-brand-sub {
-        font-size: 0.7rem;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        margin-top: 2px;
-    }
-
-    /* ── Tab Styling ── */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 0;
-        background: var(--bg-secondary);
-        border-radius: var(--radius-sm);
-        padding: 4px;
-        border: 1px solid var(--border-subtle);
-    }
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 6px;
-        padding: 0.6rem 1.5rem;
-        font-weight: 600;
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        background: transparent;
-        border: none;
-    }
-    .stTabs [aria-selected="true"] {
-        background: rgba(255,107,53,0.12) !important;
-        color: var(--accent-orange) !important;
-        border: 1px solid rgba(255,107,53,0.2) !important;
-    }
-    .stTabs [data-baseweb="tab-highlight"] {
-        display: none;
-    }
-    .stTabs [data-baseweb="tab-border"] {
-        display: none;
-    }
-
-    /* ── Button Overrides ── */
-    .stButton > button {
-        background: linear-gradient(135deg, #FF6B35, #E63946) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: var(--radius-sm) !important;
-        font-weight: 600 !important;
-        font-size: 0.85rem !important;
-        padding: 0.55rem 1.5rem !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 2px 12px rgba(255,107,53,0.25) !important;
-        letter-spacing: 0.3px;
-    }
-    .stButton > button:hover {
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 20px rgba(255,107,53,0.4) !important;
-    }
-    .stButton > button:active {
-        transform: translateY(0px) !important;
-    }
-
-    /* ── Slider Overrides ── */
-    .stSlider [data-baseweb="slider"] [role="slider"] {
-        background: var(--accent-orange) !important;
-        border: 2px solid white !important;
-        width: 16px !important;
-        height: 16px !important;
-    }
-    .stSlider [data-testid="stTickBar"] { display: none; }
-
-    /* ── Number Input ── */
-    .stNumberInput input {
-        background: var(--bg-secondary) !important;
-        border: 1px solid var(--border-subtle) !important;
-        border-radius: var(--radius-sm) !important;
-        color: var(--text-primary) !important;
-    }
-
-    /* ── File Uploader ── */
-    .stFileUploader {
-        background: transparent !important;
-    }
-    .stFileUploader [data-testid="stFileUploaderDropzone"] {
-        background: var(--bg-card) !important;
-        border: 2px dashed rgba(255,255,255,0.08) !important;
-        border-radius: var(--radius-md) !important;
-    }
-    .stFileUploader [data-testid="stFileUploaderDropzone"]:hover {
-        border-color: rgba(255,107,53,0.3) !important;
-    }
-
-    /* ── Expander ── */
-    .streamlit-expanderHeader {
-        background: var(--bg-card) !important;
-        border: 1px solid var(--border-subtle) !important;
-        border-radius: var(--radius-sm) !important;
-        font-weight: 600 !important;
-        color: var(--text-primary) !important;
-    }
-
-    /* ── Responsive ── */
-    @media (max-width: 768px) {
-        .metric-grid { grid-template-columns: repeat(2, 1fr); }
-        .pyro-header h1 { font-size: 1.6rem; }
-    }
-</style>
-""", unsafe_allow_html=True)
+render_workspace_ui()
 
 
 # ─────────────────────────────────────────────────────────────
@@ -591,27 +136,33 @@ with st.sidebar:
 
     st.markdown("## 🌤️ Weather Data")
 
-    if st.button("📡  Fetch Live Weather", use_container_width=True):
-        with st.status("Connecting to OpenWeatherMap API...", expanded=True) as status:
-            t, h, ws, wd = weather_fetcher.get_current_weather(sim_lat, sim_lon)
-            if t is not None:
-                st.session_state['temp'] = float(t)
-                st.session_state['humidity'] = float(h)
-                st.session_state['wind_speed'] = float(ws)
-                st.session_state['wind_deg'] = float(wd)
-                st.session_state['weather_fetched'] = True
-                status.update(label="✅ Weather data retrieved!", state="complete")
-                st.rerun()  # Force rerun to update sliders with new values
-            else:
-                status.update(label="❌ Failed to fetch weather", state="error")
+    coordinates = (sim_lat, sim_lon)
+    location_changed = st.session_state.get("weather_location") != coordinates
+    refresh = st.button("📡  Fetch Live Weather", use_container_width=True)
+    if location_changed or refresh:
+        st.session_state.weather_location = coordinates
+        with st.spinner("Fetching current weather..."):
+            reading = weather_fetcher.get_current_reading(*coordinates)
+        st.session_state.weather_reading = reading
+        if reading and reading["values"][3] is not None:
+            for key, value in zip(("temp", "humidity", "wind_speed", "wind_deg"), reading["values"]):
+                st.session_state[key] = float(value)
+        elif location_changed:
+            st.session_state.update(temp=35.0, humidity=15.0, wind_speed=5.0, wind_deg=180.0)
 
-    sim_temp = st.slider("🌡️ Temperature (°C)", min_value=-10.0, max_value=50.0, value=st.session_state['temp'], key='temp')
+    sim_temp = st.slider("🌡️ Temperature (°C)", min_value=min(-10.0, st.session_state.temp), max_value=max(50.0, st.session_state.temp), value=st.session_state['temp'], key='temp')
     sim_humidity = st.slider("💧 Humidity (%)", min_value=0.0, max_value=100.0, value=st.session_state['humidity'], key='humidity')
-    sim_wind_speed = st.slider("💨 Wind Speed (m/s)", min_value=0.0, max_value=50.0, value=st.session_state['wind_speed'], key='wind_speed')
+    sim_wind_speed = st.slider("💨 Wind Speed (m/s)", min_value=0.0, max_value=max(50.0, st.session_state.wind_speed), value=st.session_state['wind_speed'], key='wind_speed')
     sim_wind_deg = st.slider("🧭 Wind Direction (°)", min_value=0.0, max_value=360.0, value=st.session_state['wind_deg'], key='wind_deg')
 
     st.markdown("---")
     st.markdown("## 🎯 Risk Prediction")
+
+    inputs = (sim_lat, sim_lon, sim_temp, sim_humidity, sim_wind_speed, sim_wind_deg)
+    if st.session_state.get("assessed_inputs") != inputs or rf_model is None:
+        st.session_state.risk_level = -1
+        st.session_state.pop("assessed_inputs", None)
+    st.caption("Experimental Random Forest trained with simulated weather.")
 
     if rf_model is not None:
         if st.button("⚡  Predict Ignition Risk", use_container_width=True):
@@ -619,7 +170,12 @@ with st.sidebar:
                 [[sim_lat, sim_lon, sim_temp, sim_humidity, sim_wind_speed, sim_wind_deg]],
                 columns=['latitude', 'longitude', 'temperature_c', 'humidity_percent', 'wind_speed', 'wind_deg']
             )
-            st.session_state['risk_level'] = rf_model.predict(input_features)[0]
+            st.session_state.risk_level = -1
+            try:
+                st.session_state.risk_level = int(rf_model.predict(input_features)[0])
+                st.session_state.assessed_inputs = inputs
+            except ValueError:
+                st.error("Prediction failed for these inputs.")
     else:
         st.warning("⚠️ Risk model not loaded")
 
@@ -629,8 +185,8 @@ with st.sidebar:
         <div class="risk-badge risk-high">
             <span class="risk-icon">🚨</span>
             <div>
-                <div style="font-size:0.7rem;opacity:0.7;text-transform:uppercase;letter-spacing:1px;">Risk Level</div>
-                <div>HIGH — Ignition Favorable</div>
+                <div style="font-size:0.7rem;opacity:0.7;text-transform:uppercase;letter-spacing:1px;">Experimental risk</div>
+                <div>HIGH</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -639,8 +195,8 @@ with st.sidebar:
         <div class="risk-badge risk-low">
             <span class="risk-icon">✅</span>
             <div>
-                <div style="font-size:0.7rem;opacity:0.7;text-transform:uppercase;letter-spacing:1px;">Risk Level</div>
-                <div>LOW — Conditions Safe</div>
+                <div style="font-size:0.7rem;opacity:0.7;text-transform:uppercase;letter-spacing:1px;">Experimental risk</div>
+                <div>LOW</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -728,6 +284,15 @@ with tab1:
     humidity_color = "#10B981" if sim_humidity > 60 else ("#F59E0B" if sim_humidity > 30 else "#EF4444")
     wind_color = "#EF4444" if sim_wind_speed > 20 else ("#F59E0B" if sim_wind_speed > 10 else "#10B981")
 
+    reading = st.session_state.get("weather_reading")
+    if reading and reading["values"] == inputs[2:]:
+        st.caption(f"OpenWeather current weather · {reading['place']} "
+                   f"({sim_lat:.4f}, {sim_lon:.4f}) · Data time {reading['time']:%Y-%m-%d %H:%M} UTC")
+    elif reading and reading["values"][3] is not None:
+        st.caption("Manual weather inputs · Edited after the last OpenWeather reading.")
+    else:
+        st.warning("Current weather unavailable or incomplete. The cards show scenario inputs.")
+
     # Wind direction label
     directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
     wind_dir_label = directions[int(((sim_wind_deg + 22.5) % 360) / 45)]
@@ -752,7 +317,7 @@ with tab1:
         <div class="metric-card">
             <span class="metric-icon">🧭</span>
             <div class="metric-label">Wind Direction</div>
-            <div class="metric-value">{sim_wind_deg:.0f}°<span class="metric-unit">{wind_dir_label}</span></div>
+            <div class="metric-value">{'Calm' if sim_wind_speed == 0 else f'{sim_wind_deg:.0f}° {wind_dir_label}'}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -763,23 +328,26 @@ with tab1:
         st.markdown("""
         <div class="risk-badge risk-high" style="justify-content:center;">
             <span class="risk-icon">🚨</span>
-            <span>CRITICAL — High ignition probability detected at this location. Fire spread cone is active.</span>
+            <span>Experimental risk classification — HIGH</span>
         </div>
         """, unsafe_allow_html=True)
     elif risk_level == 0:
         st.markdown("""
         <div class="risk-badge risk-low" style="justify-content:center;">
             <span class="risk-icon">✅</span>
-            <span>ALL CLEAR — Current conditions do not favor fire ignition at this location.</span>
+            <span>Experimental risk classification — LOW</span>
         </div>
         """, unsafe_allow_html=True)
+
+    else:
+        st.info("Experimental risk: Not assessed")
 
     # ── Section Header + Hotspot Toggle ──
     sec_col1, sec_col2 = st.columns([3, 1])
     with sec_col1:
         st.markdown("""
         <div class="section-header">
-            <h3>🗺️ Interactive Spread Simulator</h3>
+            <h3>🗺️ Wind scenario map</h3>
             <div class="section-divider"></div>
         </div>
         """, unsafe_allow_html=True)
@@ -806,8 +374,8 @@ with tab1:
             <b>Lat:</b> {sim_lat:.4f} &nbsp; <b>Lon:</b> {sim_lon:.4f}<br>
             <b>Temp:</b> {sim_temp:.1f}°C &nbsp; <b>Humidity:</b> {sim_humidity:.0f}%<br>
             <b>Wind:</b> {sim_wind_speed:.1f} m/s @ {sim_wind_deg:.0f}°<br>
-            <b>Risk:</b> <span style="color:{'#EF4444' if risk_level == 1 else '#10B981'};font-weight:700;">
-            {'HIGH' if risk_level == 1 else 'LOW'}</span>
+            <b>Experimental risk:</b> <span style="color:{'#EF4444' if risk_level == 1 else '#10B981'};font-weight:700;">
+            {'HIGH' if risk_level == 1 else 'LOW' if risk_level == 0 else 'Not assessed'}</span>
         </div>
     </div>
     """
@@ -818,37 +386,48 @@ with tab1:
     ).add_to(m)
 
     # Danger Cone with Timeline Animation
-    st.markdown("### ⏱️ Fire Spread Timeline")
+    st.markdown("### ⏱️ Wind scenario timeline")
     
     timeline_hours = st.select_slider(
         "Select time horizon",
         options=[1, 3, 6, 12, 24],
         value=6,
         format_func=lambda x: f"{x}h",
-        help="Visualize predicted fire spread over different time periods"
+        help="Hours from the first forecast time"
     )
     
-    # Calculate spread cones for different time intervals
-    time_intervals = [1, 3, 6, 12, 24]
-    colors = ["#FBBF24", "#F59E0B", "#FF6B35", "#EF4444", "#DC2626"]
-    opacities = [0.15, 0.20, 0.25, 0.30, 0.35]
-    
-    for i, hours in enumerate(time_intervals):
-        if hours <= timeline_hours:
-            # Scale wind speed by time (simplified model)
-            scaled_wind = sim_wind_speed * (hours / 6)  # Normalize to 6h baseline
-            danger_polygon = calculate_spread_cone(sim_lat, sim_lon, scaled_wind, sim_wind_deg)
-            
-            folium.Polygon(
-                locations=danger_polygon,
-                color=colors[i],
-                weight=2,
-                fill=True,
-                fill_color=colors[i],
-                fill_opacity=opacities[i],
-                popup=f"🔥 {hours}h Spread Zone",
-                tooltip=f"Predicted spread after {hours} hours",
-            ).add_to(m)
+    @st.cache_data(ttl=900, show_spinner=False)
+    def forecast_for_location(lat, lon):
+        return weather_fetcher.get_forecast(lat, lon), datetime.now(timezone.utc)
+
+    forecast, retrieved = forecast_for_location(sim_lat, sim_lon)
+    if forecast:
+        start = datetime.fromtimestamp(forecast[0]["dt"], timezone.utc)
+        st.caption(f"Scenario starts {start:%Y-%m-%d %H:%M} UTC. OpenWeather forecast retrieved "
+                   f"{retrieved:%Y-%m-%d %H:%M} UTC. Issue time unavailable.")
+        st.caption("Each 3-hour wind estimate moves the scenario downwind at 1% of wind speed. "
+                   "Cone width and travel rate are illustrative.")
+        origin = (sim_lat, sim_lon)
+        elapsed = 0
+        for interval in forecast:
+            wind = interval.get("wind", {})
+            direction, speed = wind.get("deg"), wind.get("speed")
+            if interval["dt"] != forecast[0]["dt"] + elapsed * 3600 or direction is None or speed is None:
+                st.info(f"Scenario stops at {elapsed}h because forecast wind is incomplete.")
+                break
+            hours = min(3, timeline_hours - elapsed)
+            if speed > 0:
+                polygon = calculate_spread_cone(*origin, speed, direction, hours)
+                folium.Polygon(polygon, color="#FF6B35", fill=True,
+                               tooltip=f"Wind scenario {elapsed}–{elapsed + hours}h").add_to(m)
+                origin = polygon[2]
+            elapsed += hours
+            if elapsed == timeline_hours:
+                break
+        else:
+            st.info(f"Forecast coverage ends at {elapsed}h.")
+    else:
+        st.info("Wind scenario unavailable. Check forecast access and the OpenWeather key.")
 
     # ── Hotspot Layer (toggled) ──
     if show_hotspots and not df.empty:
@@ -895,17 +474,17 @@ with tab1:
     col_l1, col_l2, col_l3, col_l4 = st.columns(4)
     with col_l1:
         st.markdown(
-            '<p style="color:#9CA3AF;font-size:0.78rem;">🔴 <b>Red Marker</b> — High Risk Ignition</p>',
+            '<p style="color:#9CA3AF;font-size:0.78rem;">🔴 <b>Red Marker</b> — High experimental risk</p>',
             unsafe_allow_html=True
         )
     with col_l2:
         st.markdown(
-            '<p style="color:#9CA3AF;font-size:0.78rem;">🟢 <b>Green Marker</b> — Low Risk Ignition</p>',
+            '<p style="color:#9CA3AF;font-size:0.78rem;">🟢 <b>Green Marker</b> — Low experimental risk</p>',
             unsafe_allow_html=True
         )
     with col_l3:
         st.markdown(
-            '<p style="color:#9CA3AF;font-size:0.78rem;">🟠 <b>Orange Cone</b> — Spread Zone</p>',
+            '<p style="color:#9CA3AF;font-size:0.78rem;">🟠 <b>Orange Cone</b> — Wind scenario</p>',
             unsafe_allow_html=True
         )
     with col_l4:
@@ -1368,3 +947,4 @@ st.markdown(f"""
        Built {datetime.now().year}</p>
 </div>
 """, unsafe_allow_html=True)
+

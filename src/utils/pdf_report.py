@@ -132,17 +132,17 @@ def generate_fire_report(
     
     risk_level = risk_data.get('risk_level', -1)
     if risk_level == 1:
-        risk_text = "HIGH — Ignition Favorable"
+        risk_text = "HIGH"
         risk_color = colors.HexColor('#EF4444')
     elif risk_level == 0:
-        risk_text = "LOW — Conditions Safe"
+        risk_text = "LOW"
         risk_color = colors.HexColor('#10B981')
     else:
         risk_text = "NOT ASSESSED"
         risk_color = colors.HexColor('#6B7280')
     
     risk_table_data = [
-        ['Risk Level:', risk_text],
+        ['Experimental risk:', risk_text],
     ]
     
     if 'risk_score' in risk_data:

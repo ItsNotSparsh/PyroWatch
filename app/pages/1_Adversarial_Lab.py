@@ -37,12 +37,15 @@ from src.adversarial.common import (
 
 st.set_page_config(page_title="PyroWatch — Adversarial Lab", page_icon="🧪", layout="wide")
 
-st.markdown("## 🧪 Adversarial Lab")
-st.caption(
-    "Stress-test the fire-detection Vision Transformer. A GAN-trained generator (AdvGAN) "
-    "adds a small, nearly invisible perturbation to the image so the classifier gets it wrong. "
-    "FGSM and PGD are gradient-based baselines for comparison."
-)
+from src.workspace_ui import render_workspace_ui
+
+render_workspace_ui()
+st.markdown("""
+<div class="pyro-header">
+    <h1>Adversarial Lab</h1>
+    <p>Compare the wildfire classifier’s predictions and attention on original and altered images.</p>
+</div>
+""", unsafe_allow_html=True)
 
 
 @st.cache_resource
@@ -165,3 +168,4 @@ with st.expander("ℹ️ How AdvGAN works"):
         "PGD needs many gradient steps through the ViT for every image.\n\n"
         "Reference: Xiao et al., *Generating Adversarial Examples with Adversarial Networks*, IJCAI 2018."
     )
+
